@@ -56,18 +56,20 @@ with app.app_context():
 
 # --- Patrón Memento ---
 class Memento:
-    def __init__(self, ventanas_bloqueadas, puertas_bloqueadas, cinturon_obligatorio, velocidad_maxima):
+    def __init__(self, ventanas_bloqueadas, puertas_bloqueadas, cinturon_obligatorio, velocidad_maxima, perfil_activo=None):
         self.ventanas_bloqueadas = ventanas_bloqueadas
         self.puertas_bloqueadas = puertas_bloqueadas
         self.cinturon_obligatorio = cinturon_obligatorio
         self.velocidad_maxima = velocidad_maxima
+        self.perfil_activo = perfil_activo
 
     def obtener_estado(self):
         return {
             "ventanas_bloqueadas": self.ventanas_bloqueadas,
             "puertas_bloqueadas": self.puertas_bloqueadas,
             "cinturon_obligatorio": self.cinturon_obligatorio,
-            "velocidad_maxima": self.velocidad_maxima
+            "velocidad_maxima": self.velocidad_maxima,
+            "perfil_activo": self.perfil_activo
         }
 
 # --- Originador ---
@@ -85,13 +87,14 @@ class ConfiguracionVehiculo:
         self.velocidad_maxima = velocidad
         print(f"Configuración actualizada en el sistema.")
 
-    def guardar_configuraciones_de_seguridad(self):
+    def guardar_configuraciones_de_seguridad(self, perfil_activo=None):
         """Crea un Memento con el estado actual."""
         return Memento(
             self.ventanas_bloqueadas,
             self.puertas_bloqueadas,
             self.cinturon_obligatorio,
-            self.velocidad_maxima
+            self.velocidad_maxima,
+            perfil_activo
         )
 
     def restaurar_desde_memento(self, memento):
@@ -142,7 +145,8 @@ def obtener_sistema_usuario(user_id):
     if user_id not in sistemas_activos:
         sistemas_activos[user_id] = {
             'auto' : ConfiguracionVehiculo(),
-            'gestor' : HistorialSeguridad()
+            'gestor' : HistorialSeguridad(),
+            'perfil_activo': None
         }
     return sistemas_activos[user_id]
     
@@ -162,7 +166,7 @@ def index():
         
         if accion == 'aplicar_cambios':
             
-            gestor.agregar_al_historial(auto.guardar_configuraciones_de_seguridad())
+            gestor.agregar_al_historial(auto.guardar_configuraciones_de_seguridad(sistema['perfil_activo']))
             
             ventanas = request.form.get('ventanas') == 'on'
             puertas = request.form.get('puertas') == 'on'
@@ -170,12 +174,13 @@ def index():
             velocidad = int(request.form.get('velocidad'))
             
             auto.configurar(ventanas, puertas, cinturon, velocidad)
+            sistema['perfil_activo'] = None
             flash('Cambios aplicados con éxito.', 'success')
             
         elif accion == 'guardar_perfil':
             nombre = request.form.get('nombre_perfil')
             if nombre:
-                memento_actual = auto.guardar_configuraciones_de_seguridad()
+                memento_actual = auto.guardar_configuraciones_de_seguridad(sistema['perfil_activo'])
                 estado = memento_actual.obtener_estado()
                 
                 perfil_existente = PerfilVehiculo.query.filter_by(user_id=current_user.id, nombre_perfil=nombre).first()
@@ -206,7 +211,7 @@ def index():
             
             perfil_db = PerfilVehiculo.query.filter_by(user_id=current_user.id, nombre_perfil=nombre).first()
             if perfil_db:
-                gestor.agregar_al_historial(auto.guardar_configuraciones_de_seguridad())
+                gestor.agregar_al_historial(auto.guardar_configuraciones_de_seguridad(sistema['perfil_activo']))
                 
                 memento_recuperado = Memento(
                     ventanas_bloqueadas=perfil_db.ventanas_bloqueadas,
@@ -216,12 +221,14 @@ def index():
                 )
                 
                 auto.restaurar_desde_memento(memento_recuperado)
+                sistema['perfil_activo'] = nombre
                 flash(f'Perfil "{nombre}" cargado.', 'success')
 
         elif accion == 'deshacer':
             memento_anterior = gestor.deshacer_ultimo_cambio()
             if memento_anterior:
                 auto.restaurar_desde_memento(memento_anterior)
+                sistema['perfil_activo'] = memento_anterior.obtener_estado().get('perfil_activo')
                 flash('Último cambio deshecho.', 'success')
             else:
                 flash('No hay cambios para deshacer.', 'error')
@@ -235,7 +242,7 @@ def index():
     
     perfiles_usuario = PerfilVehiculo.query.filter_by(user_id=current_user.id).all()
     nombres_perfiles = [p.nombre_perfil for p in perfiles_usuario]
-    return render_template('index.html', estado=estado_actual, perfiles=nombres_perfiles, cambios=cambios_en_historial)
+    return render_template('index.html', estado=estado_actual, perfiles=nombres_perfiles, cambios=cambios_en_historial, perfil_activo=sistema['perfil_activo'])
 
 @app.route('/logout')
 @login_required
