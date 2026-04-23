@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body class="bg-black flex items-center justify-center min-h-screen">
+    <div>
+      <h1 class="text-3xl text-white font-thin mb-2">Crea una cuenta.</h1>
+
+      <h3 class="text-sm text-gray-500 font-extralight mb-2">
+        Regístrate para acceder a la aplicación de alarmas. y disfruta de todas
+        sus funcionalidades. ¡Es rápido y fácil!
+      </h3>
+
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <ul class="font-thin text-red-800 mb-2">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %}
+
+      <form method="POST" action="/register" class="space-y-5">
+        <label for="name" class="block text-sm font-thin text-white">
+          Nombre:
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          placeholder="Escribe tu nombre"
+          class="font-thin w-full px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-zinc-900 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+        />
+
+        <label for="username" class="block text-sm font-thin text-white"
+          >Usuario:
+        </label>
+
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          placeholder="Escribe tu usuario"
+          class="font-thin w-full px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-zinc-900 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+        />
+
+        <label for="email" class="block text-sm font-thin text-white"
+          >Correo electrónico:
+        </label>
+
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          placeholder="Escribe tu correo electrónico"
+          class="font-thin w-full px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-zinc-900 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+        />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-5">
+            <label for="password" class="block text-sm font-thin text-white"
+              >Contraseña:</label
+            >
+            <input
+              type="password"
+              name="password"
+              required
+              placeholder="Escribe tu contraseña"
+              class="font-thin w-full px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-zinc-900 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+            />
+          </div>
+          <div class="space-y-5">
+            <label
+              for="password_confirmation"
+              class="block text-sm font-thin text-white"
+            >
+              Confirmar contraseña:
+            </label>
+            <input
+              type="password"
+              name="password_confirmation"
+              required
+              placeholder="Confirma tu contraseña"
+              class="font-thin w-full px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-900 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-zinc-900 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+            />
+          </div>
+        </div>
+
+        <h4 class="text-sm text-zinc-600 font-extralight mb-6">
+          La contraseña debe tener al menos una mayúscula, un número y un
+          carácter especial.
+        </h4>
+
+        <button
+          type="submit"
+          class="w-full py-3 bg-red-900 hover:bg-red-700 text-white font-round rounded-lg transition-colors duration-200 shadow-md"
+        >
+          Registrarse
+        </button>
+      </form>
+      <p class="block text-sm font-extralight text-white mb-2 py-1">
+        ¿Ya tienes cuenta?
+        <u><a href="/login" class="text-red-900">Inicia sesión aquí</a></u>
+      </p>
+    </div>
+  </body>
+</html>
